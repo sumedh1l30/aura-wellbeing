@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Aura Digital Wellbeing | Master Build 2026</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        /* ==================== THEME ENGINE ==================== */
+        :root {
+            --bg: #0d0e12; --card: rgba(255, 255, 255, 0.05); --text: #ffffff;
+            --subtext: #a0a0a0; --accent: #00f2ff; --input-bg: #1a1b20; --border: rgba(255, 255, 255, 0.1);
+        }
+        .miui-theme { --bg: #f4f4f7; --card: #ffffff; --text: #000; --subtext: #666; --accent: #ff6700; --input-bg: #e5e5ea; --border: #d1d1d6; }
+        .ios-theme { --bg: #000; --card: #1c1c1e; --text: #fff; --subtext: #8e8e93; --accent: #0a84ff; --input-bg: #2c2c2e; --border: #38383a; }
+        .oxygen-theme { --bg: #050505; --card: #111; --text: #fff; --subtext: #aaa; --accent: #eb0029; --input-bg: #1a1a1a; --border: #222; }
+        .oneui-theme { --bg: #f0f2f5; --card: #ffffff; --text: #000; --subtext: #707070; --accent: #0381fe; --input-bg: #f8f9fa; --border: #ebebeb; }
+
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); margin: 0; transition: 0.4s; min-height: 100vh; }
+
+        /* NAVIGATION */
+        .nav { display: flex; background: rgba(0,0,0,0.85); backdrop-filter: blur(10px); position: sticky; top: 0; z-index: 1000; border-bottom: 1px solid var(--border); }
+        .nav button { flex: 1; padding: 18px; border: none; background: none; color: var(--subtext); font-weight: 600; cursor: pointer; transition: 0.3s; }
+        .nav button.active { color: var(--accent); border-bottom: 2px solid var(--accent); }
+
+        .page { display: none; padding: 20px; max-width: 900px; margin: auto; animation: fadeIn 0.4s ease; }
+        .page.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        .card { background: var(--card); border-radius: 20px; padding: 25px; margin-bottom: 20px; border: 1px solid var(--border); box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
+
+        /* HORIZONTAL INPUT TABLE */
+        .horizontal-table { width: 100%; border-collapse: collapse; }
+        .horizontal-table th { text-align: left; color: var(--subtext); font-size: 12px; text-transform: uppercase; padding-bottom: 10px; }
+        .horizontal-table input, .horizontal-table select, .horizontal-table option { 
+            width: 100%; background: var(--input-bg) !important; color: var(--text) !important; 
+            border: 1px solid var(--border); padding: 12px; border-radius: 10px; font-size: 14px;
+        }
+
+        .desc-box { background: var(--accent); color: #000; padding: 18px; border-radius: 15px; font-size: 14px; margin: 20px 0; font-weight: 600; line-height: 1.5; }
+
+        /* PROFILES */
+        .profile-container { display: flex; gap: 20px; justify-content: center; margin-top: 40px; flex-wrap: wrap; }
+        .profile-card { background: var(--card); border-radius: 24px; padding: 25px; text-align: center; border: 1px solid var(--border); width: 200px; cursor: pointer; }
+        .avatar-glow { width: 90px; height: 90px; margin: 0 auto 15px; border-radius: 50%; padding: 4px; background: conic-gradient(var(--accent), #c700ff, var(--accent)); animation: rotate 4s linear infinite; }
+        @keyframes rotate { 100% { transform: rotate(360deg); } }
+        .avatar-glow img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; border: 3px solid var(--bg); }
+
+        .btn-add { background: var(--accent); color: #000; border: none; padding: 12px 30px; border-radius: 12px; font-weight: 800; cursor: pointer; width: 100%; }
+        
+        /* MOBILE OVERRIDES */
+        @media (max-width: 650px) {
+            .horizontal-table thead { display: none; }
+            .horizontal-table td { display: block; width: 100%; padding: 8px 0; }
+        }
+    </style>
+</head>
+<body id="mainBody">
+
+<div class="nav">
+    <button data-page="home" class="active">DASHBOARD</button>
+    <button data-page="stats">CHARTS</button>
+    <button data-page="set">SYSTEM</button>
+    <button id="downloadBtn" style="background:#28a745; color:#fff; font-weight:bold; border:none; padding:0 20px; cursor:pointer;">PDF REPORT</button>
+</div>
+
+<div id="home" class="page active">
+    <div class="card">
+        <h3>Activity Logger</h3>
+        <table class="horizontal-table">
+            <thead><tr><th>App Name</th><th>Category</th><th>Minutes</th><th>Action</th></tr></thead>
+            <tbody>
+                <tr>
+                    <td><input type="text" id="appName" placeholder="e.g. YouTube"></td>
+                    <td><select id="appCat"><option value="Social">Social</option><option value="Work">Productivity</option><option value="Media">Entertainment</option></select></td>
+                    <td><input type="number" id="appTime" placeholder="Min"></td>
+                    <td><button class="btn-add" onclick="addApp()">SYNC</button></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="card">
+        <table style="width:100%; text-align:left;">
+            <thead><tr style="color:var(--subtext); border-bottom:1px solid var(--border)"><th>Application</th><th>Tag</th><th>Usage</th><th>Remove</th></tr></thead>
+            <tbody id="appBody"></tbody>
+        </table>
+    </div>
+
+    <div class="profile-container">
+        <div class="profile-card" onclick="window.open('https://www.instagram.com/sumedh__1l30')">
+            <div class="avatar-glow"><img src="https://cdn-icons-png.flaticon.com/512/2111/2111463.png"></div>
+            <b>@sumedh__1l30</b>
+        </div>
+        <div class="profile-card">
+            <div class="avatar-glow"><img src="https://instasize.com/p/2f01db58c8fa4012a27235fc65079a06a01f33c266e286351b64b5d5385334f7"></div>
+            <b>SUMEDH BHALERAO</b>
+        </div>
+    </div>
+
+    <div class="card" style="margin-top: 40px; border-top: 2px solid var(--accent);">
+        <h3 style="letter-spacing: 2px; color: var(--accent); font-size: 14px;">DEVELOPER TERMINAL</h3>
+        <p style="font-size: 14px; line-height: 1.6; color: var(--subtext);">
+            Hi, I'm <b style="color: var(--text);">Sumedh Bhalerao</b>. I am a 
+            <b style="color: var(--accent);">dedicated student and aspiring software designer</b> 
+            focused on building futuristic digital experiences. 
+            <br><br>
+            <b>Aura Digital Wellbeing</b> is my latest project, born out of a student's need for a cleaner way to track digital footprints and manage productivity.
+        </p>
+        <button onclick="window.open('https://www.instagram.com/sumedh__1l30')" 
+                style="background: transparent; border: 1px solid var(--accent); color: var(--accent); padding: 8px 15px; border-radius: 5px; cursor: pointer; font-size: 12px; font-weight: bold;">
+            CONNECT ON INSTAGRAM
+        </button>
+    </div>
+</div>
+
+<div id="stats" class="page">
+    <div class="card">
+        <label><b>Select System UI:</b></label>
+        <select id="uiSelectCharts" onchange="changeUI(this.value)" style="margin-top:10px; width:100%; background:var(--input-bg); color:var(--text); padding:10px; border-radius:8px;">
+            <option value="default">Future Dark (Default)</option>
+            <option value="miui">HyperOS (Xiaomi)</option>
+            <option value="oneui">OneUI (Samsung)</option>
+            <option value="ios">iOS (Apple)</option>
+            <option value="oxygen">OxygenOS (OnePlus)</option>
+        </select>
+    </div>
+
+    <div id="uiDescription" class="desc-box"></div>
+
+    <div class="card" style="text-align: center;">
+        <h1 id="totalMins" style="font-size: 5rem; margin:0; font-weight: 200;">0<small style="font-size:1.5rem">m</small></h1>
+        <p style="text-transform: uppercase; letter-spacing: 2px; color: var(--subtext);">Total Usage Insight</p>
+    </div>
+
+    <div class="card" style="height:400px;">
+        <canvas id="myChart"></canvas>
+    </div>
+</div>
+
+<div id="set" class="page">
+    <div class="card">
+        <h3>System Configuration</h3>
+        <p style="color:var(--subtext)">Wipe all locally stored activity and reset preferences.</p>
+        <button style="background:#ff4444; color:white; border:none; padding:15px; border-radius:12px; width:100%; cursor:pointer; font-weight:bold;" onclick="resetAll()">FACTORY RESET</button>
+    </div>
+</div>
+
+<div style="text-align:center; padding:20px; opacity:0.3; font-size:10px; letter-spacing:3px;">
+    AURA V1.0 | BUILD 2026 | STABLE RELEASE
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+<script>
+    let apps = JSON.parse(localStorage.getItem('aura_final_data')) || [];
+    let chartInstance = null;
+    let currentUI = localStorage.getItem('aura_final_ui') || 'default';
+
+    const uiRef = {
+        default: "AURA CORE: Precision tracking active. Analyze your digital footprint with high-fidelity analytics.",
+        miui: "HYPEROS SCREEN TIME: Focus on balance. View usage trends and set app limits for better health.",
+        oneui: "DIGITAL WELLBEING: Samsung OneUI protocols. Check unlock patterns and daily habit cycles.",
+        ios: "APPLE SCREEN TIME: Device-wide analytics. Manage your time effectively across the ecosystem.",
+        oxygen: "ZEN MODE: OnePlus OxygenOS. Your well-being is priority. Disconnect and breathe."
+    };
+
+    function showPage(id) {
+        document.querySelectorAll(".page").forEach(p => p.classList.remove("active"));
+        document.querySelectorAll(".nav button").forEach(b => b.classList.remove("active"));
+        document.getElementById(id).classList.add("active");
+        const btn = document.querySelector(`[data-page="${id}"]`);
+        if(btn) btn.classList.add("active");
+        if(id === 'stats') refreshChart();
+    }
+
+    document.querySelectorAll(".nav button[data-page]").forEach(b => b.onclick = () => showPage(b.dataset.page));
+
+    function addApp() {
+        const n = document.getElementById("appName").value.trim(), t = parseInt(document.getElementById("appTime").value) || 0, c = document.getElementById("appCat").value;
+        if(!n || t <= 0) return;
+
+        const existing = apps.find(a => a.name.toLowerCase() === n.toLowerCase());
+        if(existing) { existing.time += t; } 
+        else { apps.push({id: Date.now(), name: n, time: t, cat: c}); }
+
+        localStorage.setItem('aura_final_data', JSON.stringify(apps));
+        renderTable();
+        document.getElementById("appName").value = ""; document.getElementById("appTime").value = "";
+    }
+
+    function renderTable() {
+        document.getElementById("appBody").innerHTML = apps.map(a => `
+            <tr>
+                <td><b>${a.name}</b></td>
+                <td>${a.cat}</td>
+                <td style="color:var(--accent)">${a.time}m</td>
+                <td><button onclick="delApp(${a.id})" style="color:red; background:none; border:none; cursor:pointer;">×</button></td>
+            </tr>
+        `).join('');
+    }
+
+    function delApp(id) { 
+        apps = apps.filter(a => a.id !== id); 
+        localStorage.setItem('aura_final_data', JSON.stringify(apps)); 
+        renderTable(); 
+        if(chartInstance) refreshChart(); 
+    }
+
+    function changeUI(val) {
+        currentUI = val;
+        localStorage.setItem('aura_final_ui', val);
+        document.getElementById("mainBody").className = val + "-theme";
+        document.getElementById("uiDescription").innerHTML = uiRef[val];
+        document.getElementById("uiSelectCharts").value = val;
+        refreshChart();
+    }
+
+    function refreshChart() {
+        const total = apps.reduce((s,a)=>s+a.time,0);
+        document.getElementById("totalMins").innerHTML = `${total}<small style="font-size:1.5rem">m</small>`;
+        const ctx = document.getElementById("myChart").getContext("2d");
+        if(chartInstance) chartInstance.destroy();
+
+        let type = (currentUI === 'oneui') ? 'doughnut' : ((currentUI === 'miui' || currentUI === 'oxygen') ? 'line' : 'bar');
+        let color = (currentUI === 'miui') ? '#ff6700' : (currentUI === 'oxygen' ? '#eb0029' : (currentUI === 'ios' ? '#0a84ff' : '#00f2ff'));
+
+        chartInstance = new Chart(ctx, {
+            type: type,
+            data: {
+                labels: apps.map(a => a.name),
+                datasets: [{ 
+                    data: apps.map(a => a.time), 
+                    backgroundColor: (type === 'doughnut') ? ['#0381fe','#ff007a','#00ff00','#ffcc00'] : color, 
+                    borderColor: color, fill: true, tension: 0.4 
+                }]
+            },
+            options: { responsive: true, maintainAspectRatio: false }
+        });
+    }
+
+    function resetAll() { if(confirm("Clear all data?")) { apps=[]; localStorage.clear(); renderTable(); refreshChart(); } }
+
+    document.getElementById("downloadBtn").onclick = () => {
+        if(apps.length === 0) return alert("No data available.");
+        const { jsPDF } = window.jspdf; const doc = new jsPDF();
+        const total = apps.reduce((s,a)=>s+a.time,0);
+        
+        doc.setFillColor(30, 30, 30); doc.rect(0, 0, 210, 40, 'F');
+        doc.setTextColor(255, 255, 255); doc.setFontSize(22); doc.text("DIGITAL WELLBEING REPORT", 15, 25);
+        
+        doc.setTextColor(0); doc.setFontSize(12);
+        doc.text(`System Environment: ${currentUI.toUpperCase()}`, 15, 50);
+        doc.text(`Total Screen Time: ${total}m | Weekly Projection: ${total*7}m`, 15, 60);
+        doc.text(doc.splitTextToSize(uiRef[currentUI], 180), 15, 70);
+        
+        const chartImg = document.getElementById("myChart").toDataURL("image/png");
+        doc.addImage(chartImg, 'PNG', 15, 90, 180, 80);
+        
+        doc.text("App Usage History:", 15, 185);
+        apps.forEach((a, i) => doc.text(`${i+1}. ${a.name} (${a.cat}): ${a.time}m`, 20, 195 + (i*8)));
+        
+        doc.save(`Wellbeing_Report.pdf`);
+    };
+
+    window.onload = () => { changeUI(currentUI); renderTable(); showPage('home'); };
+</script>
+</body>
+</html>
