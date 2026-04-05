@@ -293,6 +293,175 @@
             ];
             response = randomTips[Math.floor(Math.random() * randomTips.length)];
         }
+        <div id="aura-ai-container">
+    <div id="aura-terminal-header">
+        <span class="status-dot"></span> AURA_INTEL_V1.0
+    </div>
+    <div id="aura-chat-logs">
+        <div class="ai-msg">System initialized. How can I optimize your wellbeing today?</div>
+    </div>
+    <div class="aura-input-wrapper">
+        <span class="prompt-char">></span>
+        <input type="text" id="aura-query" placeholder="Enter command or query..." autocomplete="off">
+    </div>
+</div>
+        // --- PART A: THE HANDS (System Actions) ---
+const AuraSystem = {
+    // 1. Theme Control
+    setTheme: (theme) => {
+        console.log(`AI triggering theme change: ${theme}`);
+        document.body.className = `theme-${theme.toLowerCase().replace(' ', '')}`;
+        // Add your specific CSS class toggle logic here
+        this.logToTerminal(`System UI modified to ${theme}.`);
+    },
+
+    // 2. Data Management
+    logActivity: (app, category, minutes) => {
+        // Logic to push to your existing 'aura-wellbeing' table
+        const table = document.querySelector("#activity-table");
+        const row = `<tr><td>${app}</td><td>${category}</td><td>${minutes}m</td></tr>`;
+        table.innerHTML += row;
+        this.logToTerminal(`Logged activity: ${app} (${minutes} mins).`);
+    },
+
+    // 3. System Reset
+    factoryReset: () => {
+        if(confirm("AI is requesting a full wipe. Continue?")) {
+            localStorage.clear();
+            location.reload();
+        }
+    },
+
+    logToTerminal: (msg) => {
+        const logs = document.getElementById('aura-chat-logs');
+        logs.innerHTML += `<div class="system-msg">[SYS]: ${msg}</div>`;
+        logs.scrollTop = logs.scrollHeight;
+    }
+};
+
+// --- PART B: THE BRAIN (AI Integration) ---
+async function askAura(query) {
+    const logs = document.getElementById('aura-chat-logs');
+    logs.innerHTML += `<div class="user-msg">Guest: ${query}</div>`;
+
+    // 1. Gather Current Context (Eyes)
+    const siteData = document.body.innerText.substring(0, 500); // AI "sees" the page
+
+    try {
+        const response = await fetch('https://api.openai.com/v1/chat/completions', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer YOUR_OPENAI_API_KEY'
+            },
+            body: JSON.stringify({
+                model: "gpt-4o",
+                messages: [
+                    { role: "system", content: `You are the Aura OS Assistant. You control this wellbeing site. Current context: ${siteData}` },
+                    { role: "user", content: query }
+                ],
+                tools: [
+                    {
+                        type: "function",
+                        function: {
+                            name: "setTheme",
+                            parameters: { type: "object", properties: { theme: { type: "string" } } }
+                        }
+                    },
+                    {
+                        type: "function",
+                        function: {
+                            name: "logActivity",
+                            parameters: { 
+                                type: "object", 
+                                properties: { 
+                                    app: { type: "string" }, 
+                                    category: { type: "string" }, 
+                                    minutes: { type: "number" } 
+                                } 
+                            }
+                        }
+                    }
+                ]
+            })
+        });
+
+        const data = await response.json();
+        const aiMessage = data.choices[0].message;
+
+        // 2. Check if AI wants to use a Tool
+        if (aiMessage.tool_calls) {
+            const tool = aiMessage.tool_calls[0].function;
+            const args = JSON.parse(tool.arguments);
+            
+            // Execute the action
+            if (AuraSystem[tool.name]) {
+                AuraSystem[tool.name](...Object.values(args));
+            }
+        } else {
+            logs.innerHTML += `<div class="ai-msg">Aura: ${aiMessage.content}</div>`;
+        }
+    } catch (err) {
+        AuraSystem.logToTerminal("Connection Error. Check API Key.");
+    }
+}
+
+// Event Listener
+document.getElementById('aura-query').addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') {
+        askAura(e.target.value);
+        e.target.value = '';
+    }
+});
+        #aura-ai-container {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    width: 350px;
+    background: rgba(10, 10, 10, 0.95);
+    border: 1px solid #00f2ff; /* Aura Cyan */
+    box-shadow: 0 0 20px rgba(0, 242, 255, 0.2);
+    border-radius: 8px;
+    font-family: 'Inter', sans-serif;
+    overflow: hidden;
+    z-index: 9999;
+}
+
+#aura-terminal-header {
+    background: #111;
+    padding: 8px 12px;
+    font-size: 10px;
+    letter-spacing: 2px;
+    color: #00f2ff;
+    border-bottom: 1px solid #222;
+}
+
+#aura-chat-logs {
+    height: 300px;
+    overflow-y: auto;
+    padding: 15px;
+    font-size: 13px;
+    color: #eee;
+}
+
+.system-msg { color: #00f2ff; font-weight: bold; margin-bottom: 8px; }
+.ai-msg { color: #ccc; margin-bottom: 8px; }
+.user-msg { color: #888; text-align: right; margin-bottom: 8px; }
+
+.aura-input-wrapper {
+    display: flex;
+    padding: 10px;
+    background: #000;
+}
+
+#aura-query {
+    background: transparent;
+    border: none;
+    color: #00f2ff;
+    width: 100%;
+    outline: none;
+    font-family: monospace;
+}
 
         setTimeout(() => addChat(response, 'ai'), 700);
     }
